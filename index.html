@@ -581,6 +581,108 @@ html, body {
 }
 
 /* ============================================
+   PERSONALIZED GUEST POPUP
+   ============================================ */
+.guest-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-primary);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+.guest-popup-overlay.visible {
+  display: flex;
+}
+
+.guest-popup-content {
+  text-align: center;
+  padding: 40px 30px;
+  max-width: 400px;
+  width: 90%;
+}
+
+.guest-popup-flourish {
+  width: 100px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 16px auto;
+  position: relative;
+}
+.guest-popup-flourish::before {
+  content: '\2726';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--gold);
+  font-size: 12px;
+  background: var(--bg-primary);
+  padding: 0 10px;
+}
+
+.guest-popup-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(14px, 4vw, 18px);
+  color: var(--gold);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease forwards;
+  animation-delay: 0.3s;
+}
+
+.guest-popup-name {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 9vw, 54px);
+  font-weight: 700;
+  color: var(--gold-light);
+  text-shadow: 0 0 30px rgba(212,168,83,0.6), 0 0 60px rgba(212,168,83,0.3);
+  margin: 12px 0;
+  position: relative;
+  opacity: 0;
+  animation: guestNameReveal 1.2s cubic-bezier(0.16,1,0.3,1) forwards;
+  animation-delay: 0.6s;
+  word-break: break-word;
+}
+
+@keyframes guestNameReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+    text-shadow: 0 0 0 rgba(212,168,83,0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    text-shadow: 0 0 30px rgba(212,168,83,0.6), 0 0 60px rgba(212,168,83,0.3);
+  }
+}
+
+.guest-popup-invite {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(16px, 4.5vw, 22px);
+  color: var(--cream);
+  font-style: italic;
+  letter-spacing: 3px;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease forwards;
+  animation-delay: 1.2s;
+}
+
+.guest-popup-tap {
+  font-size: 12px;
+  color: var(--gold);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: fadeInUp 0.6s ease forwards;
+  animation-delay: 2s;
+  margin-top: 8px;
+}
+
+/* ============================================
    UTILITIES
    ============================================ */
 @media (min-width: 768px) {
@@ -595,6 +697,18 @@ html, body {
 </style>
 </head>
 <body>
+
+<!-- Personalized Guest Popup -->
+<div class="guest-popup-overlay" id="guestPopup">
+  <div class="guest-popup-content">
+    <div class="guest-popup-flourish"></div>
+    <p class="guest-popup-label">Dear</p>
+    <h1 class="guest-popup-name" id="guestPopupName"></h1>
+    <p class="guest-popup-invite">You are invited!</p>
+    <div class="guest-popup-flourish"></div>
+    <p class="guest-popup-tap">Tap anywhere to continue</p>
+  </div>
+</div>
 
 <!-- Loading Screen -->
 <div class="loader" id="loader">
@@ -1051,16 +1165,51 @@ window.addEventListener('resize', () => {
   resizeFwCanvas();
 });
 
+// Guest popup
+const guestPopup = document.getElementById('guestPopup');
+const guestPopupName = document.getElementById('guestPopupName');
+
+function getGuestParam() {
+  const params = new URLSearchParams(window.location.search);
+  const guest = params.get('guest');
+  return guest ? guest.trim() : null;
+}
+
+function showGuestPopup(name) {
+  guestPopupName.textContent = name;
+  guestPopup.classList.add('visible');
+
+  let dismissed = false;
+  const dismiss = () => {
+    if (dismissed) return;
+    dismissed = true;
+    guestPopup.style.transition = 'opacity 1s ease';
+    guestPopup.style.opacity = '0';
+    setTimeout(() => { guestPopup.style.display = 'none'; }, 1000);
+  };
+
+  guestPopup.addEventListener('click', dismiss, { once: true });
+  setTimeout(dismiss, 5000);
+}
+
 // Init
 window.addEventListener('DOMContentLoaded', () => {
   initParticles();
   resizeFwCanvas();
   animateParticles();
 
-  // Hide loader with fade
-  setTimeout(() => {
+  const guestName = getGuestParam();
+
+  if (guestName) {
+    // Hide loader immediately, show personalized popup
     loader.classList.add('hidden');
-  }, 600);
+    showGuestPopup(guestName);
+  } else {
+    // Normal flow
+    setTimeout(() => {
+      loader.classList.add('hidden');
+    }, 600);
+  }
 });
 </script>
 </body>

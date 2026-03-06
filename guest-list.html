@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a0a1e">
+<title>Guest List Manager</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg-primary: #1a0a1e;
+  --bg-secondary: #2d0a1e;
+  --gold: #d4a853;
+  --gold-light: #f0d48a;
+  --gold-dark: #b8922e;
+  --maroon: #6b1d3a;
+  --cream: #fdf6e3;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  background: var(--bg-primary);
+  color: var(--cream);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bg-overlay {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(107,29,58,0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(107,29,58,0.2) 0%, transparent 50%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Container */
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.header-flourish {
+  width: 100px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 0 auto 14px;
+  position: relative;
+}
+.header-flourish::before {
+  content: '\2726';
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--gold);
+  font-size: 12px;
+  background: var(--bg-primary);
+  padding: 0 10px;
+}
+.header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(22px, 6vw, 30px);
+  color: var(--gold-light);
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+.header p {
+  font-size: clamp(12px, 3vw, 14px);
+  color: var(--gold);
+  opacity: 0.7;
+  margin-top: 6px;
+  letter-spacing: 2px;
+}
+
+/* Add Guest Form */
+.add-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.add-form input {
+  flex: 1;
+  background: rgba(212,168,83,0.06);
+  border: 1px solid rgba(212,168,83,0.3);
+  border-radius: 3px;
+  padding: 14px 16px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  color: var(--gold-light);
+  outline: none;
+  transition: border-color 0.3s;
+}
+.add-form input::placeholder {
+  color: rgba(212,168,83,0.35);
+}
+.add-form input:focus {
+  border-color: var(--gold);
+}
+.add-form button {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  border: none;
+  border-radius: 3px;
+  padding: 14px 20px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--bg-primary);
+  letter-spacing: 1px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.add-form button:active {
+  transform: scale(0.96);
+  box-shadow: 0 0 20px rgba(212,168,83,0.3);
+}
+
+/* Guest count */
+.guest-count {
+  font-size: 12px;
+  color: var(--gold);
+  opacity: 0.5;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* Guest list */
+.guest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--gold);
+  opacity: 0.4;
+  font-size: 14px;
+  font-style: italic;
+  letter-spacing: 1px;
+}
+
+/* Guest card */
+.guest-card {
+  background: linear-gradient(145deg, rgba(45,10,30,0.9), rgba(26,10,30,0.95));
+  border: 1px solid rgba(212,168,83,0.2);
+  border-radius: 4px;
+  padding: 16px;
+  position: relative;
+  animation: fadeInUp 0.4s ease both;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.guest-card-name {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(16px, 4.5vw, 20px);
+  color: var(--gold-light);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.guest-card-link {
+  font-size: 11px;
+  color: var(--gold);
+  opacity: 0.5;
+  word-break: break-all;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+/* Share buttons row */
+.share-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.share-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(212,168,83,0.3);
+  background: rgba(212,168,83,0.06);
+  color: var(--gold-light);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+}
+.share-btn:active {
+  transform: scale(0.9);
+}
+.share-btn svg { width: 16px; height: 16px; }
+
+.share-btn.whatsapp:active { background: rgba(37,211,102,0.2); border-color: #25D366; }
+.share-btn.facebook:active { background: rgba(24,119,242,0.2); border-color: #1877F2; }
+.share-btn.twitter:active { background: rgba(255,255,255,0.15); border-color: #fff; }
+.share-btn.copy:active { background: rgba(212,168,83,0.2); border-color: var(--gold); }
+
+/* Remove button */
+.remove-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,100,100,0.25);
+  background: rgba(255,100,100,0.06);
+  color: #ff6b6b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.remove-btn:active {
+  transform: scale(0.85);
+  background: rgba(255,100,100,0.2);
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: var(--bg-primary);
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 2px;
+  padding: 12px 24px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 1000;
+  pointer-events: none;
+}
+.toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Back link */
+.back-link {
+  display: block;
+  text-align: center;
+  margin-top: 28px;
+  font-size: 11px;
+  color: var(--gold);
+  opacity: 0.4;
+  text-decoration: none;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+
+<div class="bg-overlay"></div>
+
+<div class="container">
+  <div class="header">
+    <div class="header-flourish"></div>
+    <h1>Guest List</h1>
+    <p>Create personalized invitation links</p>
+  </div>
+
+  <div class="add-form">
+    <input type="text" id="guestInput" placeholder="Enter guest name" autocomplete="off">
+    <button id="addBtn">Add</button>
+  </div>
+
+  <div class="guest-count" id="guestCount">0 guests</div>
+
+  <div class="guest-list" id="guestList"></div>
+
+  <a href="index.html" class="back-link">&larr; Back to Invitation</a>
+</div>
+
+<script>
+const SITE_URL = 'https://myweddinginvitation0.netlify.app/';
+const STORAGE_KEY = 'weddingGuests';
+const guestInput = document.getElementById('guestInput');
+const addBtn = document.getElementById('addBtn');
+const guestListEl = document.getElementById('guestList');
+const guestCountEl = document.getElementById('guestCount');
+
+function getGuests() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch (e) { return []; }
+}
+
+function saveGuests(guests) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(guests));
+}
+
+function getLink(name) {
+  return SITE_URL + '?guest=' + encodeURIComponent(name);
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function addGuest(name) {
+  const n = name.trim();
+  if (!n) return;
+  const guests = getGuests();
+  if (guests.some(g => g.name.toLowerCase() === n.toLowerCase())) {
+    showToast('Guest already exists');
+    return;
+  }
+  guests.push({ name: n });
+  saveGuests(guests);
+  render();
+}
+
+function removeGuest(name) {
+  const guests = getGuests().filter(g => g.name !== name);
+  saveGuests(guests);
+  render();
+}
+
+function shareWhatsApp(name) {
+  const link = getLink(name);
+  const msg = 'Assalamu Alaikum ' + name + '! 🌙\n\nYou are cordially invited to the wedding ceremony of Muzeeburrahaman & Gulista and Arshi Naaz & Jishan Khan.\n\n📅 April 24 & 25, 2026\n📍 Hotel Inderlok, Najibabad\n\nOpen your personal invitation:\n' + link + '\n\nWe look forward to your gracious presence! 🤲';
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function shareFacebook(name) {
+  window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(getLink(name)), '_blank');
+}
+
+function shareTwitter(name) {
+  const text = 'You are invited to the wedding of Muzeeb & Gulista! ' + getLink(name);
+  window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text), '_blank');
+}
+
+function copyLink(name) {
+  const link = getLink(name);
+  navigator.clipboard.writeText(link).then(() => {
+    showToast('Link copied!');
+  }).catch(() => {
+    const inp = document.createElement('input');
+    inp.value = link;
+    document.body.appendChild(inp);
+    inp.select();
+    document.execCommand('copy');
+    document.body.removeChild(inp);
+    showToast('Link copied!');
+  });
+}
+
+function showToast(msg) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => {
+    t.classList.add('visible');
+    setTimeout(() => {
+      t.classList.remove('visible');
+      setTimeout(() => t.remove(), 400);
+    }, 2000);
+  });
+}
+
+function render() {
+  const guests = getGuests();
+  guestCountEl.textContent = guests.length + ' guest' + (guests.length !== 1 ? 's' : '');
+
+  if (guests.length === 0) {
+    guestListEl.innerHTML = '<div class="empty-state">No guests yet. Add your first guest above.</div>';
+    return;
+  }
+
+  guestListEl.innerHTML = guests.map(g => {
+    const safe = escapeHtml(g.name);
+    const link = getLink(g.name);
+    // Use data attributes instead of inline onclick with string escaping
+    return '<div class="guest-card" data-name="' + safe + '">' +
+      '<div class="guest-card-name">' + safe + '</div>' +
+      '<div class="guest-card-link">' + escapeHtml(link) + '</div>' +
+      '<div class="share-row">' +
+        '<button class="share-btn whatsapp" data-action="whatsapp" title="WhatsApp">' +
+          '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>' +
+        '</button>' +
+        '<button class="share-btn facebook" data-action="facebook" title="Facebook">' +
+          '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>' +
+        '</button>' +
+        '<button class="share-btn twitter" data-action="twitter" title="X / Twitter">' +
+          '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>' +
+        '</button>' +
+        '<button class="share-btn copy" data-action="copy" title="Copy Link">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>' +
+        '</button>' +
+      '</div>' +
+      '<button class="remove-btn" data-action="remove" title="Remove">&times;</button>' +
+    '</div>';
+  }).join('');
+}
+
+// Event delegation for guest cards
+guestListEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const card = btn.closest('.guest-card');
+  const name = card.dataset.name;
+  const action = btn.dataset.action;
+  if (action === 'whatsapp') shareWhatsApp(name);
+  else if (action === 'facebook') shareFacebook(name);
+  else if (action === 'twitter') shareTwitter(name);
+  else if (action === 'copy') copyLink(name);
+  else if (action === 'remove') removeGuest(name);
+});
+
+addBtn.addEventListener('click', () => {
+  addGuest(guestInput.value);
+  guestInput.value = '';
+  guestInput.focus();
+});
+
+guestInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') addBtn.click();
+});
+
+render();
+</script>
+</body>
+</html>
