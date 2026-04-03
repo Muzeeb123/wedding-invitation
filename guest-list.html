@@ -314,7 +314,10 @@ const guestListEl = document.getElementById('guestList');
 const guestCountEl = document.getElementById('guestCount');
 
 function getGuests() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  try {
+    const guests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    return guests.filter(g => g && typeof g.name === 'string' && g.name.length > 0 && g.name.length <= 100);
+  }
   catch (e) { return []; }
 }
 
@@ -334,7 +337,7 @@ function escapeHtml(s) {
 
 function addGuest(name) {
   const n = name.trim();
-  if (!n) return;
+  if (!n || typeof n !== 'string' || n.length > 100) return;
   const guests = getGuests();
   if (guests.some(g => g.name.toLowerCase() === n.toLowerCase())) {
     showToast('Guest already exists');
@@ -410,7 +413,7 @@ function render() {
     const safe = escapeHtml(g.name);
     const link = getLink(g.name);
     // Use data attributes instead of inline onclick with string escaping
-    return '<div class="guest-card" data-name="' + safe + '">' +
+    return '<div class="guest-card" data-name="' + safe.replace(/"/g, '&quot;') + '">' +
       '<div class="guest-card-name">' + safe + '</div>' +
       '<div class="guest-card-link">' + escapeHtml(link) + '</div>' +
       '<div class="share-row">' +
